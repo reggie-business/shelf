@@ -84,7 +84,12 @@ function pulsePoints(observations: FredObservation[]) {
           <v-card class="item-card" elevation="0" @click="openItem(item.id)">
             <div class="item-card-header">
               <span class="eyebrow">{{ item.name }}</span>
-              <span class="trend-badge">Trend</span>
+              <span
+                class="trend-badge"
+                :style="{ color: item.trendColor, backgroundColor: `${item.trendColor}1F` }"
+              >
+                {{ item.trend }}
+              </span>
             </div>
             <strong v-if="loading" class="item-price">Loading...</strong>
             <strong v-else class="item-price">${{ item.currentPrice.toFixed(2) }}</strong>
@@ -240,9 +245,7 @@ h1 {
 
 .trend-badge {
   padding: 4px 8px;
-  border: 1px solid rgba(126, 116, 103, 0.35);
   border-radius: 999px;
-  color: #817a71;
   font-size: 0.64rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
