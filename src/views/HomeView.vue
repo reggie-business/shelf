@@ -2,6 +2,7 @@
 import { watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { VCard, VCol, VRow } from 'vuetify/components'
+import PriceChart from '../components/PriceChart.vue'
 import { useFredData } from '../composables/useFredData'
 
 const router = useRouter()
@@ -33,7 +34,7 @@ function openItem(id: string) {
           <span class="eyebrow">{{ item.name }}</span>
           <strong v-if="loading">Loading...</strong>
           <strong v-else>${{ item.currentPrice.toFixed(2) }}</strong>
-          <div class="sparkline-placeholder"></div>
+          <PriceChart :observations="item.observations" :color="item.color" mode="pulse" :months="3" />
         </div>
       </div>
     </section>
@@ -49,7 +50,7 @@ function openItem(id: string) {
             <strong v-if="loading" class="item-price">Loading...</strong>
             <strong v-else class="item-price">${{ item.currentPrice.toFixed(2) }}</strong>
             <span class="item-unit">{{ item.unit }}</span>
-            <div class="card-sparkline-placeholder"></div>
+            <PriceChart :observations="item.observations" :color="item.color" mode="card" :months="36" />
           </v-card>
         </v-col>
         <v-col cols="12" md="4">
