@@ -81,21 +81,23 @@ function pulsePoints(observations: FredObservation[]) {
     <section class="shelf-section" aria-label="Items on the shelf">
       <v-row class="shelf-grid">
         <v-col v-for="item in items" :key="item.id" cols="12" md="4">
-          <v-card class="item-card" elevation="0" @click="openItem(item.id)">
-            <div class="item-card-header">
-              <span class="eyebrow">{{ item.name }}</span>
-              <span
-                class="trend-badge"
-                :style="{ color: item.trendColor, backgroundColor: `${item.trendColor}1F` }"
-              >
-                {{ item.trend }}
-              </span>
-            </div>
-            <strong v-if="loading" class="item-price">Loading...</strong>
-            <strong v-else class="item-price">${{ item.currentPrice.toFixed(2) }}</strong>
-            <span class="item-unit">{{ item.unit }}</span>
-            <PriceChart :observations="item.observations" :color="item.color" mode="card" :months="36" />
-          </v-card>
+          <div class="item-card-link" @click="openItem(item.id)">
+            <v-card class="item-card" elevation="0">
+              <div class="item-card-header">
+                <span class="eyebrow">{{ item.name }}</span>
+                <span
+                  class="trend-badge"
+                  :style="{ color: item.trendColor, backgroundColor: `${item.trendColor}1F` }"
+                >
+                  {{ item.trend }}
+                </span>
+              </div>
+              <strong v-if="loading" class="item-price">Loading...</strong>
+              <strong v-else class="item-price">${{ item.currentPrice.toFixed(2) }}</strong>
+              <span class="item-unit">{{ item.unit }}</span>
+              <PriceChart :observations="item.observations" :color="item.color" mode="card" :months="36" />
+            </v-card>
+          </div>
         </v-col>
         <v-col cols="12" md="4">
           <v-card class="add-card" elevation="0">
@@ -227,11 +229,15 @@ h1 {
   border-radius: 10px;
   background: #fffdf8;
   color: #2c2a27;
-  cursor: pointer;
   transition: border-color 160ms ease, transform 160ms ease;
 }
 
-.item-card:hover {
+.item-card-link {
+  height: 100%;
+  cursor: pointer;
+}
+
+.item-card-link:hover .item-card {
   border-color: rgba(44, 42, 39, 0.42);
   transform: translateY(-2px);
 }

@@ -23,17 +23,26 @@ interface Observation {
   value: number
 }
 
+interface TrendLine {
+  start: number
+  end: number
+}
+
 const props = withDefaults(
   defineProps<{
     observations: Observation[]
     color: string
     mode: ChartMode
     months?: number
+    height?: number
+    trendLine?: TrendLine
   }>(),
   {
     months: 36,
   },
 )
+
+const chartHeight = computed(() => props.height ?? (props.mode === 'pulse' ? 40 : 80))
 
 const filteredObservations = computed(() => {
   const cutoff = new Date()
@@ -42,9 +51,9 @@ const filteredObservations = computed(() => {
   return props.observations.filter((observation) => new Date(observation.date) >= cutoff)
 })
 
-const chartData = computed<ChartData<'line'>>(() => ({
-  labels: filteredObservations.value.map((observation) => observation.date),
-  datasets: [
+const chartData = computed<ChartData<'line'>>(() => {
+  const labels = filteredObservations.value.map((observation) => observation.date)
+  const datasets: ChartData<'line'>['datasets'] = [
     {
       data: filteredObservations.value.map((observation) => observation.value),
       borderColor: props.color,
@@ -55,8 +64,29 @@ const chartData = computed<ChartData<'line'>>(() => ({
       pointRadius: 0,
       pointHoverRadius: 0,
     },
-  ],
-}))
+  ]
+
+  if (props.trendLine) {
+    datasets.push({
+      data: [
+        props.trendLine.start,
+        ...Array(Math.max(labels.length - 2, 0)).fill(null),
+        props.trendLine.end,
+      ],
+      borderColor: hexToRgba(props.color, 0.4),
+      backgroundColor: 'transparent',
+      borderWidth: 2,
+      borderDash: [4, 4],
+      fill: false,
+      spanGaps: true,
+      tension: 0,
+      pointRadius: 0,
+      pointHoverRadius: 0,
+    })
+  }
+
+  return { labels, datasets }
+})
 
 const chartOptions = computed<ChartOptions<'line'>>(() => ({
   responsive: true,
@@ -98,7 +128,7 @@ function hexToRgba(hex: string, opacity: number) {
 </script>
 
 <template>
-  <div class="price-chart" :class="`price-chart--${mode}`">
+  <div class="price-chart" :class="`price-chart--${mode}`" :style="{ height: `${chartHeight}px` }">
     <Line :data="chartData" :options="chartOptions" />
   </div>
 </template>
