@@ -1,17 +1,13 @@
 <script setup lang="ts">
+import { watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { VCard, VCol, VRow } from 'vuetify/components'
+import { useFredData } from '../composables/useFredData'
 
 const router = useRouter()
+const { items, loading, error } = useFredData()
 
-const items = [
-  { id: 'eggs', name: 'Eggs' },
-  { id: 'ground-beef', name: 'Ground Beef' },
-  { id: 'chicken-breast', name: 'Chicken Breast' },
-  { id: 'pork-chops', name: 'Pork Chops' },
-  { id: 'milk', name: 'Milk' },
-  { id: 'coffee', name: 'Coffee' },
-]
+watch(items, (val) => console.log('FRED data:', val), { immediate: true })
 
 function openItem(id: string) {
   router.push(`/item/${id}`)
@@ -28,12 +24,15 @@ function openItem(id: string) {
       <div class="freshness"><span class="freshness-dot"></span>Updated monthly via FRED · Aug 2026</div>
     </header>
 
+    <p v-if="error" class="data-error">{{ error }}</p>
+
     <section class="pulse-strip" aria-labelledby="pulse-heading">
       <p id="pulse-heading" class="eyebrow">Last 90 days</p>
       <div class="pulse-grid">
         <div v-for="item in items" :key="`pulse-${item.id}`" class="pulse-item">
           <span class="eyebrow">{{ item.name }}</span>
-          <strong>$0.00</strong>
+          <strong v-if="loading">Loading...</strong>
+          <strong v-else>${{ item.currentPrice.toFixed(2) }}</strong>
           <div class="sparkline-placeholder"></div>
         </div>
       </div>
@@ -47,8 +46,9 @@ function openItem(id: string) {
               <span class="eyebrow">{{ item.name }}</span>
               <span class="trend-badge">Trend</span>
             </div>
-            <strong class="item-price">$0.00</strong>
-            <span class="item-unit">per unit</span>
+            <strong v-if="loading" class="item-price">Loading...</strong>
+            <strong v-else class="item-price">${{ item.currentPrice.toFixed(2) }}</strong>
+            <span class="item-unit">{{ item.unit }}</span>
             <div class="card-sparkline-placeholder"></div>
           </v-card>
         </v-col>
