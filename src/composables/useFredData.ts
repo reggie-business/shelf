@@ -37,7 +37,7 @@ interface FredItemDefinition {
   color: string
 }
 
-const FRED_API_URL = '/fred-api/fred/series/observations'
+const baseUrl = import.meta.env.DEV ? '/fred-api/fred/series/observations' : '/api/fred'
 
 const itemDefinitions: FredItemDefinition[] = [
   { id: 'APU0000708111', name: 'Eggs', unit: 'per dozen', color: '#C8962A' },
@@ -123,7 +123,7 @@ export function useFredData() {
   async function fetchData() {
     const apiKey = import.meta.env.VITE_FRED_API_KEY
 
-    if (!apiKey) {
+    if (import.meta.env.DEV && !apiKey) {
       error.value = 'FRED API key is missing.'
       loading.value = false
       return
@@ -134,11 +134,15 @@ export function useFredData() {
         itemDefinitions.map(async (definition): Promise<FredItem> => {
           const params = new URLSearchParams({
             series_id: definition.id,
-            api_key: apiKey,
-            file_type: 'json',
             observation_start: '2021-01-01',
           })
-          const response = await fetch(`${FRED_API_URL}?${params}`)
+
+          if (import.meta.env.DEV) {
+            params.set('api_key', apiKey)
+            params.set('file_type', 'json')
+          }
+
+          const response = await fetch(`${baseUrl}?${params}`)
 
           if (!response.ok) {
             throw new Error(`FRED request failed for ${definition.name}: ${response.status}`)
