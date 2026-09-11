@@ -3,7 +3,7 @@ import { watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { VCard, VCol, VRow } from 'vuetify/components'
 import PriceChart from '../components/PriceChart.vue'
-import { useFredData } from '../composables/useFredData'
+import { useFredData, type FredObservation } from '../composables/useFredData'
 
 const router = useRouter()
 const { items, loading, error } = useFredData()
@@ -12,6 +12,34 @@ watch(items, (val) => console.log('FRED data:', val), { immediate: true })
 
 function openItem(id: string) {
   router.push(`/item/${id}`)
+}
+
+function pulsePoints(observations: FredObservation[]) {
+  if (observations.length === 0) {
+    return ''
+  }
+
+  const latestObservationDate = observations.reduce((latest, observation) => {
+    const date = new Date(observation.date)
+    return date > latest ? date : latest
+  }, new Date(observations[0]!.date))
+  const cutoff = new Date(latestObservationDate)
+  cutoff.setMonth(cutoff.getMonth() - 3)
+
+  const recentObservations = observations.filter((observation) => new Date(observation.date) >= cutoff)
+  const values = recentObservations.map((observation) => observation.value)
+
+  const minimum = Math.min(...values)
+  const maximum = Math.max(...values)
+  const range = maximum - minimum || 1
+
+  return recentObservations
+    .map((observation, index) => {
+      const x = values.length === 1 ? 50 : (index / (values.length - 1)) * 100
+      const y = 28 - ((observation.value - minimum) / range) * 26
+      return `${x},${y}`
+    })
+    .join(' ')
 }
 </script>
 
@@ -34,7 +62,18 @@ function openItem(id: string) {
           <span class="eyebrow">{{ item.name }}</span>
           <strong v-if="loading">Loading...</strong>
           <strong v-else>${{ item.currentPrice.toFixed(2) }}</strong>
-          <PriceChart :observations="item.observations" :color="item.color" mode="pulse" :months="3" />
+          <div class="pulse-chart-container">
+            <svg viewBox="0 0 100 30" preserveAspectRatio="none" aria-hidden="true">
+              <polyline
+                :points="pulsePoints(item.observations)"
+                :stroke="item.color"
+                stroke-width="1.5"
+                fill="none"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </div>
         </div>
       </div>
     </section>
@@ -146,6 +185,17 @@ h1 {
 
 .pulse-item .eyebrow {
   white-space: nowrap;
+}
+
+.pulse-chart-container {
+  width: 100%;
+  height: 40px;
+}
+
+.pulse-chart-container svg {
+  display: block;
+  width: 100%;
+  height: 40px;
 }
 
 .sparkline-placeholder,

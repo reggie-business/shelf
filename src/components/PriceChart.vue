@@ -109,7 +109,13 @@ function hexToRgba(hex: string, opacity: number) {
   height: 40px;
 }
 
+.price-chart :deep(canvas) {
+  width: 100% !important;
+  height: 100% !important;
+}
+
 .price-chart--card {
   height: 80px;
+  padding-bottom: 12px;
 }
 </style>
